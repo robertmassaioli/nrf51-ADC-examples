@@ -1,6 +1,6 @@
 PROJECT_NAME := ble_app_uart_s130_pca10028
 
-SDK_HOME := ../../../../../..
+SDK_HOME := $(HOME)/Code/nordic-semiconductor/nrf5-sdk-11.0.0
 
 export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
@@ -138,7 +138,8 @@ LDFLAGS += -mcpu=cortex-m0
 # let linker to dump unused sections
 LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
-LDFLAGS += --specs=nano.specs -lc -lnosys
+# This will disable the ability to print uint64_t types: https://devzone.nordicsemi.com/question/95782/sprintf-with-a-uint64_t-variable/
+# LDFLAGS += --specs=nano.specs -lc -lnosys
 
 # Assembler flags
 ASMFLAGS += -x assembler-with-cpp

@@ -62,12 +62,12 @@
 #define UART_RX_BUF_SIZE                64                                         /**< UART RX buffer size. */
 
 #define ADC_BUFFER_SIZE 6                               //Size of buffer for ADC samples. Buffer size should be multiple of number of adc channels located.
-#define ADC_SAMPLE_RATE_DIVIDER				0x6000;           //This constant and the TIMER2 prescaler value (TIMER2_CONFIG_FREQUENCY) in nrf_drv_config.h file set the ADC sampling frequency
+#define ADC_SAMPLE_RATE_DIVIDER				0x600;           //This constant and the TIMER2 prescaler value (TIMER2_CONFIG_FREQUENCY) in nrf_drv_config.h file set the ADC sampling frequency
 
 static nrf_adc_value_t         adc_buffer[ADC_BUFFER_SIZE]; /**< ADC buffer. */
 static nrf_ppi_channel_t       m_ppi_channel;
 static const nrf_drv_timer_t   m_timer = NRF_DRV_TIMER_INSTANCE(2);
-static uint8_t adc_event_counter = 0;
+static uint64_t adc_event_counter = 0;
 static uint8_t number_of_adc_channels;
 
 static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
@@ -271,12 +271,14 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
+            NRF_LOG_PRINTF("Connected...\r\n");
             err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
             APP_ERROR_CHECK(err_code);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             break;
             
         case BLE_GAP_EVT_DISCONNECTED:
+            NRF_LOG_PRINTF("Disconnected...\r\n");
             err_code = bsp_indication_set(BSP_INDICATE_IDLE);
             APP_ERROR_CHECK(err_code);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
@@ -528,14 +530,18 @@ static void adc_event_handler(nrf_drv_adc_evt_t const * p_event)
     if (p_event->type == NRF_DRV_ADC_EVT_DONE)
     {
         adc_event_counter++;
-        NRF_LOG_PRINTF("  adc event counter: %d\r\n", adc_event_counter);
+        if (adc_event_counter % 1000 == 0) {
+            NRF_LOG_PRINTF("  adc event counter: %llu\r\n", adc_event_counter);
+        }
         for (uint32_t i = 0; i < p_event->data.done.size; i++)
         {
-            NRF_LOG_PRINTF("ADC value channel %d: %d\r\n", (i % number_of_adc_channels), p_event->data.done.p_buffer[i]);
+            if (adc_event_counter % 1000 == 0) {
+               NRF_LOG_PRINTF("ADC value channel %d: %d\r\n", (i % number_of_adc_channels), p_event->data.done.p_buffer[i]);
+            }
             adc_result[(i*2)] = p_event->data.done.p_buffer[i] >> 8;
             adc_result[(i*2)+1] = p_event->data.done.p_buffer[i];
         }
-        if(ADC_BUFFER_SIZE <= 10)
+        if(ADC_BUFFER_SIZE <= 10 && adc_event_counter % 1000 == 0)
         {
             ble_nus_string_send(&m_nus, &adc_result[0], ADC_BUFFER_SIZE*2);
         }	
@@ -555,6 +561,8 @@ void adc_sampling_event_enable(void)
 {
     ret_code_t err_code = nrf_drv_ppi_channel_enable(m_ppi_channel);
     APP_ERROR_CHECK(err_code);
+
+    adc_event_counter = 0;
 }
 
 /**
@@ -601,6 +609,7 @@ void adc_sampling_event_init(void)
 
     /* setup m_timer for compare event */
     uint32_t ticks = ADC_SAMPLE_RATE_DIVIDER;
+    //uint32_t ticks = nrf_drv_adc_
     nrf_drv_timer_extended_compare(&m_timer, NRF_TIMER_CC_CHANNEL0, ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
     nrf_drv_timer_enable(&m_timer);
 
