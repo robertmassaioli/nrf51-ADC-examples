@@ -14,6 +14,8 @@
  * ble_app_uart example with interrupt driven ADC functionality
  */
 
+#include "sdk_config.h"
+
 #include <stdint.h>
 #include <string.h>
 #include "nordic_common.h"
@@ -33,6 +35,11 @@
 #include "nrf_drv_adc.h"
 #include "nrf_drv_ppi.h"
 #include "nrf_drv_timer.h"
+
+// Logging support
+#define NRF_LOG_MODULE_NAME "main.c"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 
@@ -271,14 +278,14 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-            NRF_LOG_PRINTF("Connected...\r\n");
+            NRF_LOG_INFO("Connected...\r\n");
             err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
             APP_ERROR_CHECK(err_code);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             break;
             
         case BLE_GAP_EVT_DISCONNECTED:
-            NRF_LOG_PRINTF("Disconnected...\r\n");
+            NRF_LOG_INFO("Disconnected...\r\n");
             err_code = bsp_indication_set(BSP_INDICATE_IDLE);
             APP_ERROR_CHECK(err_code);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
@@ -482,7 +489,7 @@ static void advertising_init(void)
     scanrsp.uuids_complete.p_uuids  = m_adv_uuids;
 
     ble_adv_modes_config_t options = {0};
-    options.ble_adv_fast_enabled  = BLE_ADV_FAST_ENABLED;
+    options.ble_adv_fast_enabled  = true;
     options.ble_adv_fast_interval = APP_ADV_INTERVAL;
     options.ble_adv_fast_timeout  = APP_ADV_TIMEOUT_IN_SECONDS;
 
@@ -531,12 +538,12 @@ static void adc_event_handler(nrf_drv_adc_evt_t const * p_event)
     {
         adc_event_counter++;
         if (adc_event_counter % 1000 == 0) {
-            NRF_LOG_PRINTF("  adc event counter: %llu\r\n", adc_event_counter);
+            NRF_LOG_INFO("  adc event counter: %llu\r\n", adc_event_counter);
         }
         for (uint32_t i = 0; i < p_event->data.done.size; i++)
         {
             if (adc_event_counter % 1000 == 0) {
-               NRF_LOG_PRINTF("ADC value channel %d: %d\r\n", (i % number_of_adc_channels), p_event->data.done.p_buffer[i]);
+               NRF_LOG_INFO("ADC value channel %d: %d\r\n", (i % number_of_adc_channels), p_event->data.done.p_buffer[i]);
             }
             adc_result[(i*2)] = p_event->data.done.p_buffer[i] >> 8;
             adc_result[(i*2)+1] = p_event->data.done.p_buffer[i];
