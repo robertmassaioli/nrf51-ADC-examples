@@ -96,7 +96,6 @@ static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, 
  */
 void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 {
-    NRF_LOG_INFO("Now in the assert callback...\r\n");
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
@@ -537,7 +536,6 @@ static void adc_event_handler(nrf_drv_adc_evt_t const * p_event)
 {
     uint8_t adc_result[ADC_BUFFER_SIZE*2];
 	
-    NRF_LOG_INFO("Got here...");
     if (p_event->type == NRF_DRV_ADC_EVT_DONE)
     {
         adc_event_counter++;
@@ -643,14 +641,11 @@ int main(void)
     bool erase_bonds;
 
     // Initialize.
+    APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
+    uart_init();
+    
     APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
     NRF_LOG_INFO("Logging started.\r\n");
-
-    APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
-    NRF_LOG_INFO("Timer started.\r\n");
-    UNUSED_PARAMETER(uart_init);
-    // uart_init();
-    NRF_LOG_INFO("UART started.\r\n");
     
     buttons_leds_init(&erase_bonds);
     ble_stack_init();
