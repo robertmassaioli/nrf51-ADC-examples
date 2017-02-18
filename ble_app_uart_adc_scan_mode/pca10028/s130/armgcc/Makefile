@@ -173,8 +173,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/toolchain/gcc \
   $(SDK_ROOT)/external/segger_rtt \
-  $(PROJ_DIR)/config \
-  ../config \
+  $(PROJ_DIR)/config
 
 # Libraries common to all targets
 LIB_FILES += \

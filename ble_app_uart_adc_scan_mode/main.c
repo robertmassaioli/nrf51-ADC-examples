@@ -96,6 +96,7 @@ static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, 
  */
 void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 {
+    NRF_LOG_INFO("Now in the assert callback...\r\n");
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
@@ -447,24 +448,26 @@ void uart_event_handle(app_uart_evt_t * p_event)
 /**@snippet [UART Initialization] */
 static void uart_init(void)
 {
-    uint32_t                     err_code;
-    const app_uart_comm_params_t comm_params =
-    {
-        RX_PIN_NUMBER,
-        TX_PIN_NUMBER,
-        RTS_PIN_NUMBER,
-        CTS_PIN_NUMBER,
-        APP_UART_FLOW_CONTROL_ENABLED,
-        false,
-        UART_BAUDRATE_BAUDRATE_Baud115200
-    };
+    uint32_t err_code;
 
-    APP_UART_FIFO_INIT( &comm_params,
-                       UART_RX_BUF_SIZE,
-                       UART_TX_BUF_SIZE,
-                       uart_event_handle,
-                       APP_IRQ_PRIORITY_LOW,
-                       err_code);
+    const app_uart_comm_params_t comm_params =
+      {
+        .rx_pin_no    = RX_PIN_NUMBER,
+        .tx_pin_no    = TX_PIN_NUMBER,
+        .rts_pin_no   = RTS_PIN_NUMBER,
+        .cts_pin_no   = CTS_PIN_NUMBER,
+        .flow_control = APP_UART_FLOW_CONTROL_ENABLED,
+        .use_parity   = false,
+        .baud_rate    = UART_BAUDRATE_BAUDRATE_Baud115200
+      };
+
+    APP_UART_FIFO_INIT(&comm_params,
+                        UART_RX_BUF_SIZE,
+                        UART_TX_BUF_SIZE,
+                        uart_event_handle,
+                        APP_IRQ_PRIORITY_LOWEST,
+                        err_code);
+
     APP_ERROR_CHECK(err_code);
 }
 /**@snippet [UART Initialization] */
@@ -534,6 +537,7 @@ static void adc_event_handler(nrf_drv_adc_evt_t const * p_event)
 {
     uint8_t adc_result[ADC_BUFFER_SIZE*2];
 	
+    NRF_LOG_INFO("Got here...");
     if (p_event->type == NRF_DRV_ADC_EVT_DONE)
     {
         adc_event_counter++;
@@ -639,8 +643,14 @@ int main(void)
     bool erase_bonds;
 
     // Initialize.
+    APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
+    NRF_LOG_INFO("Logging started.\r\n");
+
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
-    uart_init();
+    NRF_LOG_INFO("Timer started.\r\n");
+    UNUSED_PARAMETER(uart_init);
+    // uart_init();
+    NRF_LOG_INFO("UART started.\r\n");
     
     buttons_leds_init(&erase_bonds);
     ble_stack_init();
@@ -661,7 +671,10 @@ int main(void)
     // Enter main loop.
     for (;;)
     {
-        power_manage();
+        if(NRF_LOG_PROCESS() == false) 
+        {
+           power_manage();
+        }
     }
 }
 
