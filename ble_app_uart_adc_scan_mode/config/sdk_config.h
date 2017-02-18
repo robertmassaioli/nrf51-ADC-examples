@@ -239,7 +239,7 @@
 // <e> ADC_CONFIG_LOG_ENABLED - Enables logging in the module.
 //==========================================================
 #ifndef ADC_CONFIG_LOG_ENABLED
-#define ADC_CONFIG_LOG_ENABLED 0
+#define ADC_CONFIG_LOG_ENABLED 1
 #endif
 #if  ADC_CONFIG_LOG_ENABLED
 // <o> ADC_CONFIG_LOG_LEVEL  - Default Severity level
