@@ -1,6 +1,6 @@
 PROJECT_NAME := ble_app_uart_s130_pca10028
 
-SDK_HOME := ../../../../../..
+SDK_HOME := $(HOME)/Code/nordic-semiconductor/nrf5-sdk-11.0.0
 
 export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
